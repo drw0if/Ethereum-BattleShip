@@ -84,6 +84,7 @@ contract BattleShip {
     }
 
     // Events to notify frontend
+    event NewGame(uint256 game_id);
     event PlayerJoined(uint256 game_id, address player_id);
     event FeeProposed(uint256 game_id, address player_id, uint256 fee);
     event FeeAgreed(uint256 game_id, uint256 fee);
@@ -102,9 +103,10 @@ contract BattleShip {
     // Collects games which are pending for players to join
     // used for random matchmaking and game join
     uint256[] private free_games;
+    uint256 private free_games_count;
 
     // NB: public because it is both used by the frontend and the contract itself
-    function new_game() public returns (uint256) {
+    function new_game() public {
         uint256 game_id = uint256(
             keccak256(abi.encodePacked(block.number - 1))
         );
@@ -117,12 +119,17 @@ contract BattleShip {
         Game storage game = id2game[game_id];
         game.game_id = game_id;
         game.game_state = GameState.WaitingForOpponent;
-        game.position_in_games_list = free_games.length;
-        free_games.push(game_id);
+        game.position_in_games_list = free_games_count;
+        if (free_games_count == free_games.length) {
+            free_games.push(game_id);
+        } else {
+            free_games[free_games_count] = game_id;
+        }
+        free_games_count++;
 
         game.A.user_id = msg.sender;
 
-        return game_id;
+        emit NewGame(game_id);
     }
 
     // NB: public because it is both used by the frontend and the contract itself
@@ -136,20 +143,22 @@ contract BattleShip {
         );
 
         // Remove the game from the list of available games
-        if (free_games.length == 1) {
+        if (free_games_count == 1) {
             // if only one element, just remove it
             delete free_games[0];
+            free_games_count--;
         } else {
             // otherwise swap the current game with the last one
             // and then remove the last one and update it's position
             // in the list
             uint256 current_position = current_game.position_in_games_list;
-            uint256 last_position = free_games.length - 1;
+            uint256 last_position = free_games_count - 1;
             uint256 last_game_id = free_games[last_position];
 
             free_games[current_position] = last_game_id;
             id2game[last_game_id].position_in_games_list = current_position;
             delete free_games[last_position];
+            free_games_count--;
         }
 
         // Update game infos
@@ -166,18 +175,17 @@ contract BattleShip {
     // otherwise join random game
     // then returns the game_id
     // and a boolean to indicate if the game is new or not
-    function join_random_game() external returns (uint256, bool) {
-        if (free_games.length == 0) {
-            return (new_game(), true);
+    function join_random_game() external {
+        if (free_games_count == 0) {
+            new_game();
         } else {
             // make choice at random
             uint256 random_index = uint256(
                 keccak256(abi.encodePacked(block.number - 1))
             );
 
-            uint256 game_id = free_games[random_index % free_games.length];
+            uint256 game_id = free_games[random_index % free_games_count];
             join_game(game_id);
-            return (game_id, false);
         }
     }
 
@@ -713,5 +721,9 @@ contract BattleShip {
     function get_game_state(uint256 game_id) external view returns (GameState) {
         require(id2game[game_id].game_id != 0, "Game does not exist");
         return id2game[game_id].game_state;
+    }
+
+    function get_free_games_length() external view returns (uint256) {
+        return free_games_count;
     }
 }
