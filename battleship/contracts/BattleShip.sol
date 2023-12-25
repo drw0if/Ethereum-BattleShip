@@ -110,7 +110,7 @@ contract BattleShip {
         );
 
         require(
-            id2game[game_id].game_id != 0,
+            id2game[game_id].game_id == 0,
             "Can't create a new game at the moment, retry"
         );
 
@@ -165,9 +165,10 @@ contract BattleShip {
     // If no game exists just create one
     // otherwise join random game
     // then returns the game_id
-    function join_random_game() external returns (uint256) {
+    // and a boolean to indicate if the game is new or not
+    function join_random_game() external returns (uint256, bool) {
         if (free_games.length == 0) {
-            return new_game();
+            return (new_game(), true);
         } else {
             // make choice at random
             uint256 random_index = uint256(
@@ -176,7 +177,7 @@ contract BattleShip {
 
             uint256 game_id = free_games[random_index % free_games.length];
             join_game(game_id);
-            return game_id;
+            return (game_id, false);
         }
     }
 
@@ -708,4 +709,9 @@ contract BattleShip {
     }
 
     /* View functions */
+    // Return GameState
+    function get_game_state(uint256 game_id) external view returns (GameState) {
+        require(id2game[game_id].game_id != 0, "Game does not exist");
+        return id2game[game_id].game_state;
+    }
 }
