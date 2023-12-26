@@ -26,7 +26,7 @@
 					const decoded_data = decode_event('NewGame', receipt.logs[0]);
 
 					ctx.game_id = decoded_data.game_id;
-					ctx.set_state(GameStates.WaitingForOpponent);
+					ctx.set_state(GameStates.WaitingForOpponent, receipt.blockNumber);
 				});
 		} catch (err) {
 			toast.set({ message: "Can't create a new game, please try again in a while" });
@@ -35,62 +35,74 @@
 
 	const join_game = async () => {
 		try {
-			let game_id = null;
-			let tx_hash = null;
-			let new_state = null;
+			ctx.set_state(GameStates.WaitingForReceipt);
 
 			// If no game id is provided, join a random game
 			if (user_provided_game_id === '') {
-				//ctx.set_state(GameStates.WaitingForReceipt);
-				console.log('Joining a random game without ID');
-
 				const tx_hash = await $contracts.BattleShip.methods
 					.join_random_game()
 					.send({
 						from: $selectedAccount
 					})
-					.on('receipt', (receipt) => {
-						console.log('Receipt: ', receipt);
-
+					.on('receipt', async (receipt) => {
 						if (receipt.logs.length == 0) {
 							toast.set({ message: "Can't join any game, try to create a new one" });
+							ctx.set_state(GameStates.NotStarted);
 							return;
 						}
 
 						let decoded_data;
-						let new_game = false;
+						let is_new_game = false;
 
 						try {
 							decoded_data = decode_event('NewGame', receipt.logs[0]);
-							new_game = true;
-							console.log(`NewGame`);
+							is_new_game = true;
 						} catch (err) {
 							decoded_data = decode_event('PlayerJoined', receipt.logs[0]);
-							console.log(`PlayerJoined`);
 						}
 
-						console.log(decoded_data);
-						console.log(new_game);
+						ctx.game_id = decoded_data.game_id;
+						if (!is_new_game) {
+							let opponent_id = await $contracts.BattleShip.methods
+								.get_opponent(decoded_data.game_id)
+								.call();
+							ctx.opponent_id = opponent_id;
+						}
 
-						//ctx.game_id = decoded_data.game_id;
-						//game_id = result[0];
-						//ctx.set_state(result[1] ? GameStates.WaitingForOpponent : GameStates.FeeNegotiation);
+						ctx.set_state(
+							is_new_game ? GameStates.WaitingForOpponent : GameStates.FeeNegotiation,
+							receipt.blockNumber
+						);
 					});
 			} else {
 				// Otherwise, try to convert the string to a uint256 and
 				// join the game with the provided id
-				game_id = $web3.utils.toBN(user_provided_game_id);
-				console.log(`User provided: ${user_provided_game_id} -> ${game_id}`);
-				const result = await $contracts.BattleShip.methods.join_game(game_id).call();
-				const tx_hash = await $contracts.BattleShip.methods.join_game(game_id).send({
-					from: $selectedAccount
-				});
-				console.log(result);
-				//ctx.game_state = GameStates.FeeNegotiation;
+				const game_id = $web3.utils.toBigInt(user_provided_game_id);
+				const tx_hash = await $contracts.BattleShip.methods
+					.join_game(game_id)
+					.send({
+						from: $selectedAccount
+					})
+					.on('receipt', async (receipt) => {
+						ctx.game_id = game_id;
+						let opponent_id = await $contracts.BattleShip.methods
+							.get_opponent(game_id)
+							.call();
+						ctx.opponent_id = opponent_id;
+
+						ctx.set_state(GameStates.FeeNegotiation, receipt.blockNumber);
+					});
 			}
 		} catch (err) {
-			console.log(err);
-			toast.set({ message: "Can't join the game, please try again in a while" });
+			if (
+				err.message &&
+				(err.message.includes('Invalid value given') || err.message.includes('Cannot convert'))
+			) {
+				toast.set({ message: 'Invalid game ID specified!' });
+			} else {
+				toast.set({ message: "Can't join any game, try to create a new one" });
+			}
+			ctx.set_state(GameStates.NotStarted);
 		}
 	};
 </script>
