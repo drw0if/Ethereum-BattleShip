@@ -258,7 +258,7 @@ contract BattleShip {
 
         // Check that user did not already commit the board
         // otherwise it would double pay
-        require(player.committed_board != 0, "You already committed the board");
+        require(player.committed_board == 0, "You already committed the board");
 
         // Check that the fee has been paid
         // proposed_fee SHOULD be the same at this point
@@ -736,5 +736,4 @@ contract BattleShip {
             return current_game.A.user_id;
         }
     }
-
 }
