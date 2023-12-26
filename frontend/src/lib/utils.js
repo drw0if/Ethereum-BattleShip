@@ -18,5 +18,9 @@ const decode_event = (event_name, log) => {
     return data;
 }
 
+const compute_proof = (x, y) => {
+    const hash = get(web3).utils.soliditySha3(x, y);
+    return get(web3).utils.toBigInt(hash);
+}
 
-export { decode_event }
+export { decode_event, compute_proof }

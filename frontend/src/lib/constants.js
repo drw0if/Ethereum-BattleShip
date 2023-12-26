@@ -13,7 +13,7 @@ const GameStates = {};
     'WaitingForReceipt',
 ].forEach((state, index) => (GameStates[state] = index));
 
-const CONTRACT_ADDRESS = '0x5429c63b6DBcfddD8696e719DB48f2F8C4aE95F6';
+const CONTRACT_ADDRESS = '0x5A0E128d074CEbe8fcd46341C20EFc23F6Fdc759';
 
 export {
     GameStates,

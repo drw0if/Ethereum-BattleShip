@@ -6,6 +6,7 @@
 	import { WaitingForOpponent } from './WaitingForOpponent';
 	import { FeeNegotiation } from './FeeNegotiation';
     import { BuildBoard } from './BuildBoard';
+	import { MakeMove } from './MakeMove';
 	import { GameStates, CONTRACT_ADDRESS } from '$lib/constants.js';
 	import Debug from './Debug.svelte';
 
@@ -16,6 +17,11 @@
 		game_id: null,
 		last_block_received: null,
 		fee: 0,
+		opponent_id: null,
+		ships: null,
+		merkle_root: null,
+		nonces: null,
+
 
 		set_state: (new_state, last_block_received = null) => {
 			ctx.game_state = new_state;
@@ -48,7 +54,7 @@
 {:else if ctx.game_state === GameStates.WaitingCommitment}
     <BuildBoard bind:ctx />
 {:else if ctx.game_state === GameStates.WaitingForMove}
-	<p>Waiting for move</p>
+	<MakeMove bind:ctx />
 {:else if ctx.game_state === GameStates.WaitingForProof}
 	<p>Waiting for proof</p>
 {:else if ctx.game_state === GameStates.WaitingForReveal}
