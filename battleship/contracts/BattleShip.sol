@@ -726,4 +726,15 @@ contract BattleShip {
     function get_free_games_length() external view returns (uint256) {
         return free_games_count;
     }
+
+    function get_opponent(uint256 game_id) external view returns (address) {
+        require(id2game[game_id].game_id != 0, "Game does not exist");
+        Game storage current_game = id2game[game_id];
+        if (current_game.A.user_id == msg.sender) {
+            return current_game.B.user_id;
+        } else {
+            return current_game.A.user_id;
+        }
+    }
+
 }
