@@ -121,38 +121,37 @@
 			return $web3.utils.toBigInt(nonce, 16);
 		});
 
-		// Generate hash(position_status || nonce)
-		let proofs = board_status.map((cell_state, i) => {
-			return compute_proof(cell_state === 2, nonces[i]);
+		// Building merkle tree 1-indexed (for efficient son-father calculation)
+		// starting with generating hash(position_status || nonce)
+		// in leafs
+		let merkle_tree = new Array(128).fill(0);
+
+		board_status.forEach((cell_state, i) => {
+			merkle_tree[i + 64] = compute_proof(cell_state === 2, nonces[i]);
 		});
 
 		// Compute Merkle tree root
-		let i = 0;
-		let j = 0;
+		let i = 63;
 
-		let next_size = 32;
-
-		while (next_size != 0) {
-			for (i = j = 0; i < next_size; i++) {
-				proofs[i] = compute_proof(proofs[j], proofs[j + 1]);
-				j += 2;
-			}
-			next_size = next_size >> 1;
+		while (i > 0) {
+			merkle_tree[i] = compute_proof(merkle_tree[i * 2], merkle_tree[i * 2 + 1]);
+			i--;
 		}
 
 		// Save state in context
-		ctx.merkle_root = proofs[0];
+		ctx.merkle_tree = merkle_tree;
 		ctx.nonces = nonces;
 		ctx.ships = ships;
 
 		// Commit board on blockchain
 		$contracts.BattleShip.methods
-			.commit_board(ctx.game_id, ctx.merkle_root)
+			.commit_board(ctx.game_id, ctx.merkle_tree[1])
 			.send({ from: $selectedAccount, value: ctx.fee })
 			.on('receipt', (receipt) => {
 				// Save reference to block and change state
+				ctx.board_status = board_status;
 				ctx.last_block_received = receipt.blockNumber;
-				ctx.set_state(GameStates.WaitingForMove);
+				ctx.set_state(GameStates.Game);
 			})
 			.on('error', (error) => {
 				console.log(error);

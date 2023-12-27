@@ -247,6 +247,19 @@ export default  [
           "internalType": "uint256",
           "name": "game_id",
           "type": "uint256"
+        }
+      ],
+      "name": "NextRound",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "game_id",
+          "type": "uint256"
         },
         {
           "indexed": false,

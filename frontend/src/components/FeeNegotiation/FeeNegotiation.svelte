@@ -14,7 +14,7 @@
 	// and open the modal
 	$contracts.BattleShip.events
 		.FeeProposed({
-			filter: { game_id: ctx.game_id, player_id: ctx.opponent_id },
+			filter: { game_id: ctx.game_id },
 			fromBlock: ctx.last_block_received
 		})
 		.on('data', async (event) => {
@@ -23,11 +23,9 @@
 				return;
 			}
 
-			if (player_id === ctx.opponent_id) {
+			if ($web3.utils.toBigInt(player_id) === ctx.opponent_id) {
 				opponent_fee = fee;
 				hide_modal = false;
-			} else {
-				return;
 			}
 		});
 

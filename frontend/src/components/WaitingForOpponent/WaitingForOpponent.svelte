@@ -14,7 +14,7 @@
 		.on('data', (event) => {
 			let opponent_id = event.returnValues.player_id;
 
-			ctx.opponent_id = opponent_id;
+			ctx.opponent_id = $web3.utils.toBigInt(opponent_id);
 			ctx.set_state(GameStates.FeeNegotiation, event.blockNumber);
 		});
 </script>

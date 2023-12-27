@@ -66,7 +66,7 @@
 							let opponent_id = await $contracts.BattleShip.methods
 								.get_opponent(decoded_data.game_id)
 								.call();
-							ctx.opponent_id = opponent_id;
+							ctx.opponent_id = $web3.utils.toBigInt(opponent_id);
 						}
 
 						ctx.set_state(
@@ -88,7 +88,8 @@
 						let opponent_id = await $contracts.BattleShip.methods
 							.get_opponent(game_id)
 							.call();
-						ctx.opponent_id = opponent_id;
+
+							ctx.opponent_id = $web3.utils.toBigInt(opponent_id);
 
 						ctx.set_state(GameStates.FeeNegotiation, receipt.blockNumber);
 					});
