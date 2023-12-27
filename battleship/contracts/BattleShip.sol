@@ -94,6 +94,7 @@ contract BattleShip {
     event CheatingAttempt(uint256 game_id, address player_id);
     event Hit(uint256 game_id, address player_id, uint8 position);
     event Miss(uint256 game_id, address player_id, uint8 position);
+    event NextRound(uint256 game_id);
     event EndOfGame(uint256 game_id);
     event GameOver(uint256 game_id, address winner);
     event AccusationRequest(uint256 game_id, address player_id);
@@ -422,6 +423,7 @@ contract BattleShip {
             current_game.game_state = GameState.WaitingForMove;
             player.move = opponent.move = NO_MOVE;
             player.revealed = opponent.revealed = false;
+            emit NextRound(game_id);
         }
     }
 
