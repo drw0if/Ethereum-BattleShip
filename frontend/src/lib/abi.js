@@ -7,12 +7,6 @@ export default  [
           "internalType": "uint256",
           "name": "game_id",
           "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "address",
-          "name": "player_id",
-          "type": "address"
         }
       ],
       "name": "AccusationElapsed",
@@ -48,6 +42,19 @@ export default  [
         }
       ],
       "name": "AccusationRequest",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "game_id",
+          "type": "uint256"
+        }
+      ],
+      "name": "AccusationRetired",
       "type": "event"
     },
     {

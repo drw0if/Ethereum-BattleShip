@@ -2,6 +2,7 @@
 	import { web3, contracts, selectedAccount } from 'svelte-web3';
 	import { Toast, toast } from '../Toast';
 	import { GameStates } from '$lib/constants.js';
+	import { AccusationModal } from '../AccusationModal';
 
 	export let ctx;
 
@@ -25,6 +26,7 @@
 	ctx.can_reveal = false;
 	ctx.opponent_board_status = new Array(64).fill(BoardStatus.Empty);
 	ctx.opponent_selection = null;
+	ctx.running_accusation = false;
 
 	// wait for GameStarted to enable the selection
 	$contracts.BattleShip.events
@@ -187,27 +189,6 @@
 		});
 
 	$contracts.BattleShip.events
-		.AccusationElapsed({
-			filter: { game_id: ctx.game_id },
-			fromBlock: ctx.last_block_received
-		})
-		.on('data', (event) => {
-			// Here only if opponent left the game and the accusation elapsed
-
-			console.log('AccusatioElapsed event');
-		});
-
-	$contracts.BattleShip.events
-		.AccusationInPlace({
-			filter: { game_id: ctx.game_id },
-			fromBlock: ctx.last_block_received
-		})
-		.on('data', (event) => {
-			// Here if the accusation is still in place
-			console.log('AccusationInPlace event');
-		});
-
-	$contracts.BattleShip.events
 		.CheatingAttempt({
 			filter: { game_id: ctx.game_id },
 			fromBlock: ctx.last_block_received
@@ -226,7 +207,65 @@
 			ctx.set_state(GameStates.HallOfShame);
 		});
 
-	const make_accusation = () => {};
+	const make_accusation = () => {
+		if (ctx.can_make_move || ctx.can_reveal) {
+			return;
+		}
+
+		$contracts.BattleShip.methods
+			.make_accusation(ctx.game_id)
+			.send({ from: $selectedAccount })
+			.on('receipt', (receipt) => {
+				ctx.accused_at = receipt.blockNumber;
+			})
+			.catch((_) => {
+				ctx.running_accusation = false;
+			});
+
+		ctx.running_accusation = true;
+	};
+
+	$contracts.BattleShip.events
+		.AccusationElapsed({
+			filter: { game_id: ctx.game_id },
+			fromBlock: ctx.last_block_received
+		})
+		.on('data', (event) => {
+			console.log('AccusationElapsed event');
+			// Here only if opponent left the game and the accusation elapsed
+			ctx.last_block_received = event.blockNumber;
+			ctx.set_state(GameStates.GameOver);
+		});
+
+	$contracts.BattleShip.events
+		.AccusationRetired({
+			filter: { game_id: ctx.game_id },
+			fromBlock: ctx.last_block_received
+		})
+		.on('data', (event) => {
+			// Here if the accusation has been retired remove the popup
+			ctx.running_accusation = false;
+		});
+
+	$contracts.BattleShip.events
+		.AccusationRequest({
+			filter: { game_id: ctx.game_id },
+			fromBlock: ctx.last_block_received
+		})
+		.on('data', (event) => {
+			// Here if the accusation has been requested
+			ctx.last_block_received = event.blockNumber;
+
+			if (event.returnValues.player_id.toLowerCase() !== $selectedAccount.toLowerCase()) {
+				toast.set({
+					message: 'You have been accused of idle, make your move to avoid losing the game!',
+					type: 'error'
+				});
+			} else {
+				ctx.running_accusation = true;
+				ctx.accused_at = event.blockNumber;
+			}
+		});
 </script>
 
 <section class="bg-gray-50 dark:bg-gray-900 flex flex-col mx-auto">
@@ -300,6 +339,10 @@
 </section>
 
 <Toast />
+
+{#if ctx.running_accusation}
+	<AccusationModal bind:ctx />
+{/if}
 
 <style>
 	.cell {

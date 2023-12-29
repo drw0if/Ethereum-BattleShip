@@ -22,7 +22,7 @@ pragma solidity >=0.4.22 <0.9.0;
 
 contract BattleShip {
     uint8 private constant NO_MOVE = 255;
-    uint8 private constant MAX_HIT = 1;//16;
+    uint8 private constant MAX_HIT = 1; //16;
     uint8 private constant MAX_ROUNDS = 64;
 
     enum GameState {
@@ -98,7 +98,8 @@ contract BattleShip {
     event EndOfGame(uint256 game_id);
     event GameOver(uint256 game_id, address winner);
     event AccusationRequest(uint256 game_id, address player_id);
-    event AccusationElapsed(uint256 game_id, address player_id);
+    event AccusationElapsed(uint256 game_id);
+    event AccusationRetired(uint256 game_id);
     event AccusationInPlace(uint256 game_id);
 
     // Collects actual games data, used for the game evolution
@@ -511,9 +512,10 @@ contract BattleShip {
         // Check if player is under accusation
         if (current_player.accused) {
             // If response is under time limit, the accusation is retired
-            if (current_player.accused_at + 5 < block.timestamp) {
+            if (current_player.accused_at + 5 >= block.number) {
                 current_player.accused = false;
                 current_player.accused_at = 0;
+                emit AccusationRetired(game_id);
                 return false;
             } else {
                 // Otherwise the accusation is valid and the opponent wins
@@ -523,7 +525,8 @@ contract BattleShip {
                     current_game.A.user_id
                     ? current_game.B.user_id
                     : current_game.A.user_id;
-                emit AccusationElapsed(game_id, current_game.winner);
+                emit AccusationElapsed(game_id);
+                emit GameOver(game_id, current_game.winner);
                 return true;
             }
         }
@@ -597,7 +600,8 @@ contract BattleShip {
         require(!opponent.accused, "Opponent is already under accusation");
 
         opponent.accused = true;
-        opponent.accused_at = block.timestamp;
+        opponent.accused_at = block.number;
+        emit AccusationRequest(game_id, msg.sender);
     }
 
     function check_accusation(
@@ -620,10 +624,11 @@ contract BattleShip {
         require(opponent.accused, "Your opponent is not under accusation");
 
         // If opponent did not respond in time, the accusation is valid
-        if (opponent.accused_at + 5 < block.timestamp) {
+        if (opponent.accused_at + 5 < block.number) {
             current_game.game_state = GameState.GameOver;
             current_game.winner = player.user_id;
-            emit AccusationElapsed(game_id, current_game.winner);
+            emit AccusationElapsed(game_id);
+            emit GameOver(game_id, current_game.winner);
             return;
         }
         emit AccusationInPlace(game_id);
@@ -743,7 +748,7 @@ contract BattleShip {
         uint8[5] memory sizes = [5, 4, 3, 2, 2];
 
         for (uint8 i = 0; i < 5; i++) {
-            if(ships[i].start_position > 63) {
+            if (ships[i].start_position > 63) {
                 return 0;
             }
 
