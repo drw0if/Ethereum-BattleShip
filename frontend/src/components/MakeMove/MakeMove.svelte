@@ -1,7 +1,7 @@
 <script>
 	import { web3, contracts, selectedAccount } from 'svelte-web3';
 	import { Toast, toast } from '../Toast';
-	import { decode_event } from '$lib/utils.js';
+	import { GameStates } from '$lib/constants.js';
 
 	export let ctx;
 
@@ -89,7 +89,7 @@
 			}
 		});
 
-	const reveal = async () => {
+	const reveal = async (cheat) => {
 		if (!ctx.can_reveal) {
 			return;
 		}
@@ -124,11 +124,13 @@
 		const tmp = ctx.opponent_selection;
 
 		const tx = await $contracts.BattleShip.methods
-			.submit_proof(ctx.game_id, has_ship, ctx.nonces[ctx.opponent_selection], proof)
+			.submit_proof(ctx.game_id, has_ship, cheat ? 1 : ctx.nonces[ctx.opponent_selection], proof)
 			.send({ from: $selectedAccount })
 			.catch((_) => {
 				ctx.can_reveal = true;
-				ctx.board_status[ctx.opponent_selection] = has_ship ? BoardStatus.Placed : BoardStatus.Empty;
+				ctx.board_status[ctx.opponent_selection] = has_ship
+					? BoardStatus.Placed
+					: BoardStatus.Empty;
 				ctx.opponent_selection = tmp;
 			});
 
@@ -174,15 +176,35 @@
 		});
 
 	$contracts.BattleShip.events
-		.GameOver({
+		.EndOfGame({
 			filter: { game_id: ctx.game_id },
 			fromBlock: ctx.last_block_received
 		})
 		.on('data', (event) => {
-			if (event.returnValues.player_id != ctx.opponent_id) {
-				return;
-			}
-			console.log('GameOver event received: ', event.returnValues);
+			// Here only if game ends correctly
+			ctx.last_block_received = event.blockNumber;
+			ctx.set_state(GameStates.RevealBoard);
+		});
+
+	$contracts.BattleShip.events
+		.AccusationElapsed({
+			filter: { game_id: ctx.game_id },
+			fromBlock: ctx.last_block_received
+		})
+		.on('data', (event) => {
+			// Here only if opponent left the game and the accusation elapsed
+
+			console.log('AccusatioElapsed event');
+		});
+
+	$contracts.BattleShip.events
+		.AccusationInPlace({
+			filter: { game_id: ctx.game_id },
+			fromBlock: ctx.last_block_received
+		})
+		.on('data', (event) => {
+			// Here if the accusation is still in place
+			console.log('AccusationInPlace event');
 		});
 
 	$contracts.BattleShip.events
@@ -191,10 +213,17 @@
 			fromBlock: ctx.last_block_received
 		})
 		.on('data', (event) => {
-			if (event.returnValues.player_id != ctx.opponent_id) {
+			const player_id = $web3.utils.toBigInt(event.returnValues.player_id);
+			ctx.last_block_received = event.blockNumber;
+
+			if (player_id === ctx.opponent_id) {
+				// Opponent cheated so, move to GameOver state
+				ctx.set_state(GameStates.GameOver);
 				return;
 			}
-			console.log('CheatingAttempt event received: ', event.returnValues);
+
+			// Current player cheated, so move to Hall of shame page
+			ctx.set_state(GameStates.HallOfShame);
 		});
 
 	const make_accusation = () => {};
@@ -211,7 +240,7 @@
 							<td
 								class="border border-gray-200 dark:border-gray-700 cell {color_map[
 									ctx.board_status[i * 8 + j]
-								]} {(ctx.opponent_selection === i * 8 + j)? 'bg-black':''}"
+								]} {ctx.opponent_selection === i * 8 + j ? 'selected_cell' : ''}"
 							>
 							</td>
 						{/each}
@@ -248,7 +277,16 @@
 			<button
 				type="button"
 				class="w-auto text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
-				on:click={reveal}>Reveal</button
+				on:click={() => {
+					reveal(false);
+				}}>Reveal</button
+			>
+			<button
+				type="button"
+				class="w-auto text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+				on:click={() => {
+					reveal(true);
+				}}>Cheat</button
 			>
 		{:else}
 			<h5 class="text-xl font-bold dark:text-white w-100 mt-3 text-center">Waiting for opponent</h5>
@@ -268,5 +306,9 @@
 		width: 50px;
 		height: 50px;
 		border: 1px solid black;
+	}
+
+	.selected_cell {
+		background-color: black;
 	}
 </style>

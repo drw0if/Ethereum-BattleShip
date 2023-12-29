@@ -7,6 +7,8 @@
 	import { FeeNegotiation } from './FeeNegotiation';
 	import { BuildBoard } from './BuildBoard';
 	import { MakeMove } from './MakeMove';
+	import { RevealBoard } from './RevealBoard';
+	import { GameOver } from './GameOver';
 	import { GameStates, CONTRACT_ADDRESS } from '$lib/constants.js';
 	import Debug from './Debug.svelte';
 
@@ -52,14 +54,14 @@
 	<FeeNegotiation bind:ctx />
 {:else if ctx.game_state === GameStates.WaitingCommitment}
 	<BuildBoard bind:ctx />
-{:else if ctx.game_state === GameStates.Game }
+{:else if ctx.game_state === GameStates.Game}
 	<MakeMove bind:ctx />
-{:else if ctx.game_state === GameStates.WaitingForReveal}
-	<p>Waiting for reveal</p>
+{:else if ctx.game_state === GameStates.RevealBoard}
+	<RevealBoard bind:ctx />
 {:else if ctx.game_state === GameStates.GameOver}
-	<p>Game over</p>
-{:else if ctx.game_state === GameStates.WaitingForReceipt}
-	<Spinner />
+	<GameOver bind:ctx />
+{:else if ctx.game_state === GameStates.HallOfShame}
+	<p>Don't cheat, bro...</p>
 {:else}
 	<p>Unknown state</p>
 {/if}
