@@ -99,25 +99,6 @@ export default  [
       "inputs": [
         {
           "indexed": false,
-          "internalType": "string",
-          "name": "msg",
-          "type": "string"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "value",
-          "type": "uint256"
-        }
-      ],
-      "name": "Debug",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": false,
           "internalType": "uint256",
           "name": "game_id",
           "type": "uint256"

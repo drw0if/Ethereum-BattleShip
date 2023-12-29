@@ -22,7 +22,7 @@ pragma solidity >=0.4.22 <0.9.0;
 
 contract BattleShip {
     uint8 private constant NO_MOVE = 255;
-    uint8 private constant MAX_HIT = 16;
+    uint8 private constant MAX_HIT = 1;//16;
     uint8 private constant MAX_ROUNDS = 64;
 
     enum GameState {
@@ -384,6 +384,7 @@ contract BattleShip {
             current_game.game_state = GameState.GameOver;
             current_game.winner = opponent.user_id;
             emit CheatingAttempt(game_id, msg.sender);
+            emit GameOver(game_id, current_game.winner);
             return;
         }
 
@@ -472,6 +473,7 @@ contract BattleShip {
             current_game.game_state = GameState.GameOver;
             current_game.winner = opponent.user_id;
             emit CheatingAttempt(game_id, msg.sender);
+            emit GameOver(game_id, current_game.winner);
             return;
         }
 
