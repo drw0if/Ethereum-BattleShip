@@ -141,6 +141,9 @@
 		// Save state in context
 		ctx.merkle_tree = merkle_tree;
 		ctx.nonces = nonces;
+
+		// Sort ships by size, descending
+		ships.sort((a, b) => b.length - a.length);
 		ctx.ships = ships;
 
 		// Commit board on blockchain
@@ -152,7 +155,7 @@
 				ctx.board_status = board_status;
 				ctx.last_block_received = receipt.blockNumber;
 				ctx.set_state(GameStates.Game);
-			})
+			});
 	};
 </script>
 
