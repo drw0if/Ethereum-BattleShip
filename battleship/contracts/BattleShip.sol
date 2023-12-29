@@ -45,7 +45,7 @@ contract BattleShip {
     struct Ship {
         uint8 start_position;
         // true if horizontal, false if vertical
-        bool direction;
+        bool is_horizontal;
     }
 
     struct Player {
@@ -98,6 +98,8 @@ contract BattleShip {
     event EndOfGame(uint256 game_id);
     event GameOver(uint256 game_id, address winner);
     event AccusationRequest(uint256 game_id, address player_id);
+    event AccusationElapsed(uint256 game_id, address player_id);
+    event AccusationInPlace(uint256 game_id);
 
     // Collects actual games data, used for the game evolution
     mapping(uint256 => Game) private id2game;
@@ -320,7 +322,7 @@ contract BattleShip {
             "Position already revealed"
         );
 
-        if (check_accusation(game_id, player)) {
+        if (try_to_clean_accusation(game_id, player)) {
             return;
         }
 
@@ -382,11 +384,10 @@ contract BattleShip {
             current_game.game_state = GameState.GameOver;
             current_game.winner = opponent.user_id;
             emit CheatingAttempt(game_id, msg.sender);
-            emit GameOver(game_id, opponent.user_id);
             return;
         }
 
-        if (check_accusation(game_id, player)) {
+        if (try_to_clean_accusation(game_id, player)) {
             return;
         }
 
@@ -416,6 +417,7 @@ contract BattleShip {
             ) {
                 // Game is over so user must reveal their boards
                 current_game.game_state = GameState.WaitingForReveal;
+                player.revealed = opponent.revealed = false;
                 emit EndOfGame(game_id);
                 return;
             }
@@ -470,11 +472,10 @@ contract BattleShip {
             current_game.game_state = GameState.GameOver;
             current_game.winner = opponent.user_id;
             emit CheatingAttempt(game_id, msg.sender);
-            emit GameOver(game_id, opponent.user_id);
             return;
         }
 
-        if (check_accusation(game_id, player)) {
+        if (try_to_clean_accusation(game_id, player)) {
             return;
         }
 
@@ -501,7 +502,7 @@ contract BattleShip {
         }
     }
 
-    function check_accusation(
+    function try_to_clean_accusation(
         uint256 game_id,
         Player storage current_player
     ) private returns (bool) {
@@ -520,7 +521,7 @@ contract BattleShip {
                     current_game.A.user_id
                     ? current_game.B.user_id
                     : current_game.A.user_id;
-                emit GameOver(game_id, current_game.winner);
+                emit AccusationElapsed(game_id, current_game.winner);
                 return true;
             }
         }
@@ -597,6 +598,35 @@ contract BattleShip {
         opponent.accused_at = block.timestamp;
     }
 
+    function check_accusation(
+        uint256 game_id
+    ) external player_in_game(game_id) {
+        Game storage current_game = id2game[game_id];
+
+        Player storage player;
+        Player storage opponent;
+
+        if (current_game.A.user_id == msg.sender) {
+            player = current_game.A;
+            opponent = current_game.B;
+        } else {
+            player = current_game.B;
+            opponent = current_game.A;
+        }
+
+        // Check if player is under accusation
+        require(opponent.accused, "Your opponent is not under accusation");
+
+        // If opponent did not respond in time, the accusation is valid
+        if (opponent.accused_at + 5 < block.timestamp) {
+            current_game.game_state = GameState.GameOver;
+            current_game.winner = player.user_id;
+            emit AccusationElapsed(game_id, current_game.winner);
+            return;
+        }
+        emit AccusationInPlace(game_id);
+    }
+
     /* Utility functions */
 
     /* Assume that:
@@ -669,16 +699,23 @@ contract BattleShip {
     function update_board(
         uint64 current_board,
         uint8 index,
-        bool direction,
+        bool is_horizontal,
         uint8 ship_size
     ) private pure returns (uint64) {
-        for (uint8 i = 0; i < ship_size; i++) {
-            // Check if we are at the end of the row
-            if (index & 0x7 == 0) {
+        current_board |= uint64(1 << index);
+        if (is_horizontal) {
+            index += 1;
+        } else {
+            index += 8;
+        }
+
+        for (uint8 i = 1; i < ship_size; i++) {
+            // if ship is horizontal we can't be at the start of the row
+            if (is_horizontal && index & 0x7 == 0) {
                 return 0;
             }
-            // check if we are at the end of the board
-            if (index > 63) {
+            // if ship is vertical we can't be over the last row
+            if (!is_horizontal && index > 63) {
                 return 0;
             }
 
@@ -689,7 +726,7 @@ contract BattleShip {
 
             // Update board
             current_board |= uint64(1 << index);
-            if (direction) {
+            if (is_horizontal) {
                 index += 1;
             } else {
                 index += 8;
@@ -704,10 +741,14 @@ contract BattleShip {
         uint8[5] memory sizes = [5, 4, 3, 2, 2];
 
         for (uint8 i = 0; i < 5; i++) {
+            if(ships[i].start_position > 63) {
+                return 0;
+            }
+
             board = update_board(
                 board,
                 ships[i].start_position,
-                ships[i].direction,
+                ships[i].is_horizontal,
                 sizes[i]
             );
             if (board == 0) {
