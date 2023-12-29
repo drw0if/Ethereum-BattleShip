@@ -20,8 +20,6 @@
 			});
 		}
 
-        console.log(ships);
-
 		$contracts.BattleShip.methods
 			.reveal_board(ctx.game_id, ships, ctx.nonces)
 			.send({ from: $selectedAccount })
