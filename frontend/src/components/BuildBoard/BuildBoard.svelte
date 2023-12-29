@@ -153,9 +153,6 @@
 				ctx.last_block_received = receipt.blockNumber;
 				ctx.set_state(GameStates.Game);
 			})
-			.on('error', (error) => {
-				console.log(error);
-			});
 	};
 </script>
 

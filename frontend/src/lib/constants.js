@@ -6,13 +6,13 @@ const GameStates = {};
     'FeeNegotiation',
     'WaitingCommitment',
     'Game',
-    'WaitingForReveal',
+    'RevealBoard',
     'GameOver',
 
-    'WaitingForReceipt',
+    'HallOfShame'
 ].forEach((state, index) => (GameStates[state] = index));
 
-const CONTRACT_ADDRESS = '0x27a895D16743768B03De7991Fa81227B22B9E8E6';
+const CONTRACT_ADDRESS = '0x5C863f72914c22246e6E3e1D3F5A0Edf065b317E';
 
 export {
     GameStates,

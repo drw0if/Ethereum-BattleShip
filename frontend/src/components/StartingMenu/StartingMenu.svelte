@@ -10,8 +10,6 @@
 
 	const create_new_game = async () => {
 		try {
-			ctx.set_state(GameStates.WaitingForReceipt);
-
 			const tx_hash = await $contracts.BattleShip.methods
 				.new_game()
 				.send({
@@ -35,8 +33,6 @@
 
 	const join_game = async () => {
 		try {
-			ctx.set_state(GameStates.WaitingForReceipt);
-
 			// If no game id is provided, join a random game
 			if (user_provided_game_id === '') {
 				const tx_hash = await $contracts.BattleShip.methods

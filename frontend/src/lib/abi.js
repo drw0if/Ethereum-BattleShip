@@ -15,6 +15,38 @@ export default  [
           "type": "address"
         }
       ],
+      "name": "AccusationElapsed",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "game_id",
+          "type": "uint256"
+        }
+      ],
+      "name": "AccusationInPlace",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "game_id",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "player_id",
+          "type": "address"
+        }
+      ],
       "name": "AccusationRequest",
       "type": "event"
     },
@@ -60,6 +92,25 @@ export default  [
         }
       ],
       "name": "CheatingAttempt",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "msg",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "Debug",
       "type": "event"
     },
     {
@@ -397,7 +448,7 @@ export default  [
             },
             {
               "internalType": "bool",
-              "name": "direction",
+              "name": "is_horizontal",
               "type": "bool"
             }
           ],
@@ -438,6 +489,19 @@ export default  [
         }
       ],
       "name": "make_accusation",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "game_id",
+          "type": "uint256"
+        }
+      ],
+      "name": "check_accusation",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
