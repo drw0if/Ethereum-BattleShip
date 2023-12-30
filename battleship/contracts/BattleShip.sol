@@ -559,7 +559,7 @@ contract BattleShip {
         require(!player.withdrawed, "You already withdrawed");
 
         uint256 amount = current_game.A.proposed_fee;
-        if (current_game.winner == address(0)) {
+        if (current_game.winner != address(0)) {
             amount <<= 1;
         }
 

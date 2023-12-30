@@ -231,7 +231,6 @@
 			fromBlock: ctx.last_block_received
 		})
 		.on('data', (event) => {
-			console.log('AccusationElapsed event');
 			// Here only if opponent left the game and the accusation elapsed
 			ctx.last_block_received = event.blockNumber;
 			ctx.set_state(GameStates.GameOver);
