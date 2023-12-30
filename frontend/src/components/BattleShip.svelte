@@ -42,7 +42,7 @@
 	});
 </script>
 
-<Debug bind:ctx />
+<!--<Debug bind:ctx />-->
 {#if ctx.game_state === GameStates.SettingUp}
 	<Spinner />
 	<p class="text-center">Attaching to the contract</p>
