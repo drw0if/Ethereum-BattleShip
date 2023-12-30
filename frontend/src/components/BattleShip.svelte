@@ -61,7 +61,30 @@
 {:else if ctx.game_state === GameStates.GameOver}
 	<GameOver bind:ctx />
 {:else if ctx.game_state === GameStates.HallOfShame}
-	<p>Don't cheat, bro...</p>
+	<div class="text-center m-5">
+		<h1
+			class="mb-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-6xl dark:text-white"
+		>
+			You cheated!
+		</h1>
+		<p
+			class="mb-6 text-lg font-normal text-gray-500 lg:text-xl sm:px-16 xl:px-48 dark:text-gray-400"
+		>
+			You did not manage to prove your board. Your opponent won the game and you lost your fees.
+		</p>
+		<p
+			class="mb-6 text-lg font-normal text-gray-500 lg:text-xl sm:px-16 xl:px-48 dark:text-gray-400"
+		>
+			Please be nice the next time!
+		</p>
+		<button
+			type="button"
+			class="text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+			on:click={async () => {
+				document.location.reload();
+			}}>Quit</button
+		>
+	</div>
 {:else}
 	<p>Unknown state</p>
 {/if}
