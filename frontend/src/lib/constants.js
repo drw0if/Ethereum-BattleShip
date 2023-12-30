@@ -12,7 +12,7 @@ const GameStates = {};
     'HallOfShame'
 ].forEach((state, index) => (GameStates[state] = index));
 
-const CONTRACT_ADDRESS = '0xdD94F40fEAFAeE29644224C94F1F1ebdc700dCd4';
+const CONTRACT_ADDRESS = '0x977e50C6e323B3EbAd5EbfDdDB5b361374Cb91bC';
 
 export {
     GameStates,

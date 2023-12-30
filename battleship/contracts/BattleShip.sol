@@ -267,7 +267,7 @@ contract BattleShip {
         // Check that the fee has been paid
         // proposed_fee SHOULD be the same at this point
         require(
-            msg.value == player.proposed_fee,
+            msg.value == player.proposed_fee *1e9,
             "You must pay the fee to commit the board"
         );
 
@@ -558,7 +558,7 @@ contract BattleShip {
 
         require(!player.withdrawed, "You already withdrawed");
 
-        uint256 amount = current_game.A.proposed_fee;
+        uint256 amount = current_game.A.proposed_fee * 1e9;
         if (current_game.winner != address(0)) {
             amount <<= 1;
         }

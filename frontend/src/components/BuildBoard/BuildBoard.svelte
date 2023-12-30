@@ -149,7 +149,7 @@
 		// Commit board on blockchain
 		$contracts.BattleShip.methods
 			.commit_board(ctx.game_id, ctx.merkle_tree[1])
-			.send({ from: $selectedAccount, value: ctx.fee })
+			.send({ from: $selectedAccount, value: $web3.utils.toWei(ctx.fee.toString(), 'gwei') })
 			.on('receipt', (receipt) => {
 				// Save reference to block and change state
 				ctx.board_status = board_status;

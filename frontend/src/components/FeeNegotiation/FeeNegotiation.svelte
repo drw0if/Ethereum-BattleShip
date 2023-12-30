@@ -9,6 +9,7 @@
 	let current_fee = 100;
 	let last_proposed_fee = null;
 	let opponent_fee = null;
+	let step = 1;
 
 	// Subscribe to FeeProposed event to update the opponent proposed fee
 	// and open the modal
@@ -87,12 +88,13 @@
 	<form class="max-w-sm mx-auto p-10">
 		<div class="mb-5">
 			<label for="fee" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-				>Propose your fee:</label
+				>Propose your fee: (in gwei)</label
 			>
 			<input
 				type="number"
 				id="fee"
 				class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+				{step}
 				placeholder="100"
 				required
 				bind:value={current_fee}
@@ -104,6 +106,36 @@
 			on:click|preventDefault={propose_fee}>Propose</button
 		>
 	</form>
+	<div class="flex flex-row m-5">
+		<button
+			type="button"
+			class="block text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 m-auto mx-3"
+			on:click={() => {
+				step = 1e9;
+			}}>ETH</button
+		>
+		<button
+			type="button"
+			class="block text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 m-auto mx-3"
+			on:click={() => {
+				step = 1e6;
+			}}>finney</button
+		>
+		<button
+			type="button"
+			class="block text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 m-auto mx-3"
+			on:click={() => {
+				step = 1e3;
+			}}>szabo</button
+		>
+		<button
+			type="button"
+			class="block text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 m-auto mx-3"
+			on:click={() => {
+				step = 1;
+			}}>shannon</button
+		>
+	</div>
 
 	{#if opponent_fee}
 		<form class="max-w-sm mx-auto p-10">
