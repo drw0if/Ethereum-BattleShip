@@ -1,6 +1,5 @@
 <script>
 	import { defaultEvmStores as evm, web3, selectedAccount, contracts } from 'svelte-web3';
-	import Specification from '$lib/Specification.pdf';
 	//import Documentation from '$lib/Documentation.pdf';
 
 	import '../app.css';
@@ -50,10 +49,10 @@
 				class="flex flex-wrap items-center mt-3 text-sm font-medium text-gray-500 dark:text-gray-400 sm:mt-0"
 			>
 				<li>
-					<a href={Specification} class="hover:underline me-4 md:me-6">About</a>
+					<a href="Specification.pdf" class="hover:underline me-4 md:me-6">About</a>
 				</li>
 				<li>
-					<a href={Specification} class="hover:underline me-4 md:me-6">TODO: Documentation</a>
+					<a href="Specification.pdf" class="hover:underline me-4 md:me-6">TODO: Documentation</a>
 				</li>
 				<li>
 					<a
