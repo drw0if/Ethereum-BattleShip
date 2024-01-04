@@ -600,15 +600,15 @@ contract BattleShip {
         require(!opponent.accused, "Opponent is already under accusation");
 
         if(current_game.game_state == GameState.WaitingForMove) {
-            // Check that the other player has not proposed a move
+            // Check that the player already made his move
             require(
                 player.move != NO_MOVE,
                 "You must make your move in order to accuse the opponent"
             );
-        } else if(current_game.game_state == GameState.WaitingForProof) {
-            // Check that the other player has not revealed the move
+        } else {
+            // Check that the player already revealed his move/board
             require(
-                !player.revealed,
+                player.revealed,
                 "You must reveal your move in order to accuse the opponent"
             );
         }

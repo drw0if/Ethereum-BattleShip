@@ -28,6 +28,8 @@
 	ctx.opponent_selection = null;
 	ctx.running_accusation = false;
 
+	let opponent_ready = false;
+
 	// wait for GameStarted to enable the selection
 	$contracts.BattleShip.events
 		.GameStarted({
@@ -40,6 +42,7 @@
 			}
 			ctx.last_block_received = event.blockNumber;
 			ctx.can_make_move = true;
+			opponent_ready = true;
 			toast.set({ message: 'Game started', type: 'success' });
 		});
 
@@ -326,13 +329,15 @@
 					reveal(true);
 				}}>Cheat</button
 			>
-		{:else}
+		{:else if opponent_ready}
 			<h5 class="text-xl font-bold dark:text-white w-100 mt-3 text-center">Waiting for opponent</h5>
 			<button
 				type="button"
 				class="w-auto text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
 				on:click={make_accusation}>Accuse of leaving</button
 			>
+		{:else}
+			<h5 class="text-xl font-bold dark:text-white w-100 mt-3 text-center">Waiting for the other opponent to commit his board</h5>
 		{/if}
 	</div>
 </section>
