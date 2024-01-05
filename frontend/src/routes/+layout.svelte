@@ -52,7 +52,7 @@
 					<a href="Specification.pdf" class="hover:underline me-4 md:me-6">About</a>
 				</li>
 				<li>
-					<a href="Specification.pdf" class="hover:underline me-4 md:me-6">TODO: Documentation</a>
+					<a href="Documentation.pdf" class="hover:underline me-4 md:me-6">Documentation</a>
 				</li>
 				<li>
 					<a
